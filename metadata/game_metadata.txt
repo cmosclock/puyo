@@ -3,4 +3,4 @@ devtitle=fall
 gameid=fall
 gametitle=fall
 version=0.1
-icon=metadata/animal.png
+icon=metadata/circle-white.png

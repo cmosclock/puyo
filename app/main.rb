@@ -10,6 +10,7 @@ class Blob
     @slot_y = y
     @color = [:red, :green, :blue, :yellow, :purple].sample
     @controlled = true
+    @game_state = :init
   end
 end
 
@@ -43,7 +44,10 @@ class Puyo
   end
   
   def render_grid
-    @args.outputs.solids << [grid_x, grid_y, grid_w_total, grid_h_total, [255, 255, 255]]
+    # @banner_sprite_sze ||= @args.gtk.calcspritebox('sprites/marisa.png')
+    # w, h = @banner_sprite_sze
+    # @args.outputs.primitives << [0, 120, w * 0.5, h * 0.5, 'sprites/marisa.png', 0, [0.2 * 225, 255,255,255]].sprite
+    @args.outputs.primitives << [grid_x, grid_y, grid_w_total, grid_h_total, [255, 255, 255]].solid
   end
 
   def render_blobs
@@ -58,7 +62,10 @@ class Puyo
       when :purple then [106,13,173]
       else [0, 0, 0]
       end
-      @args.outputs.solids << [x, y, @blob_sz, @blob_sz, color]
+      @blob_sprite_size ||= @args.gtk.calcspritebox('sprites/circle-white.png')
+      w, h = @blob_sprite_size
+      @args.outputs.primitives << [x, y, @blob_sz, h * (@blob_sz / w), 'sprites/circle-white.png', 0, 255, color].sprite
+      # @args.outputs.primitives << [x, y, @blob_sz, @blob_sz, color].solids
       # update to wrap groups by border
       # @args.outputs.borders << [x, y, @blob_sz, @blob_sz]
     end
@@ -67,8 +74,11 @@ class Puyo
   def render
     render_grid
     render_blobs
-    @args.outputs.primitives << [50, 200, 'puyo', 30, 0, [255, 255, 255]].label
-    @args.outputs.primitives << [50, 100, "Score: #{@score}", 20 , 0, [255, 255, 255]].label
+    # @args.outputs.primitives << [50, 200, 'puyo', 30, 0, [255, 255, 255]].label
+    @args.outputs.primitives << [@args.grid.w - 100, @args.grid.h - 50, "Score: #{@score}", 20 , 2, [255, 255, 255]].label
+    if @game_state != :running
+      @args.outputs.primitives << [@args.grid.w - 100, @args.grid.h - 120, "- Click Anywhere to Start -", 4 , 2, [255, 255, 255]].label
+    end
     # @args.outputs.primitives << [0, 200, "freefall: #{@freefall_in_progress}", 2, 0, [255, 255, 255]].label
     # @args.outputs.primitives << [100, 600, "total: #{blob_groups.map{|bg| "#{bg.first.color}: #{bg.size}"}.join("\n")}", 1, 0, [255, 0, 0]].label
   end
@@ -129,7 +139,12 @@ class Puyo
   end
 
   def update
-    if !controllable_blobs.any? # && @args.inputs.keyboard.e
+    if @args.inputs.mouse.click && @game_state != :running
+      @blobs.clear
+      @score = 0
+      @game_state = :running
+    end
+    if @game_state == :running && !controllable_blobs.any? # && @args.inputs.keyboard.e
       @spawning_blobs = true
     end
 
@@ -178,7 +193,7 @@ class Puyo
     end
     if @lastUpdated.elapsed_time > 60 * 0.5 / (@speed + (@freefall_in_progress ? 5 : 0) + @lastUpdated.elapsed_time / 20) # 2 seconds
       original_uncontrollable_blobs = uncontrollable_blobs
-      if @spawning_blobs && !(@blobs.size != 0 && @freefall_in_progress) && !uncontrollable_blobs.any? {|b| b.slot_y >= @grid_h}
+      if @spawning_blobs && @game_state == :running && !(@blobs.size != 0 && @freefall_in_progress)
         add_blobpair
         @spawning_blobs = false
       end
@@ -202,8 +217,11 @@ class Puyo
           @freefall_in_progress = true
         end
       end
-      ## pop
-      
+
+      # win lost
+      if @game_state == :running && uncontrollable_blobs.any? {|b| b.slot_y >= @grid_h}
+        @game_state = :lost
+      end
       @lastUpdated = @args.state.tick_count
     end
   end
