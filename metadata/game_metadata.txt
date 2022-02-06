@@ -1,6 +1,6 @@
-devid=fall
-devtitle=fall
-gameid=fall
-gametitle=fall
+devid=puyo
+devtitle=puyo
+gameid=puyo
+gametitle=puyo
 version=0.1
-icon=metadata/circle-white.png
+icon=metadata/mofu2.png

@@ -19,7 +19,7 @@ class Puyo
     @args = args
     @grid_w = 6
     @grid_h = 12
-    @blob_sz = 50
+    @blob_sz = 60
     @blobs = []
     @lastUpdated = args.state.tick_count
     @spawning_blobs = false
@@ -51,20 +51,20 @@ class Puyo
   end
 
   def render_blobs
-    @blobs.each do |blob|
+    @blobs.sort_by(&:slot_x).each do |blob|
       x = grid_x + blob.slot_x * @blob_sz
       y = grid_y + blob.slot_y * @blob_sz
       color = case blob.color
-      when :red then [255,0,0]
-      when :green then [0,255,0]
-      when :blue then [0,0,255]
-      when :yellow then [255,255,0]
-      when :purple then [106,13,173]
+      when :red then [255,150,150]
+      when :green then [150,255,150]
+      when :blue then [150,150,255]
+      when :yellow then [255,255,150]
+      when :purple then [255,150,255]
       else [0, 0, 0]
       end
-      @blob_sprite_size ||= @args.gtk.calcspritebox('sprites/circle-white.png')
+      @blob_sprite_size ||= @args.gtk.calcspritebox('sprites/mofu2.png')
       w, h = @blob_sprite_size
-      @args.outputs.primitives << [x, y, @blob_sz, h * (@blob_sz / w), 'sprites/circle-white.png', 0, 255, color].sprite
+      @args.outputs.primitives << [x - (@blob_sz * 0.5 / 2), y, @blob_sz * 1.5, h * (@blob_sz / w) * 1.5, 'sprites/mofu2.png', 0, 255, color].sprite
       # @args.outputs.primitives << [x, y, @blob_sz, @blob_sz, color].solids
       # update to wrap groups by border
       # @args.outputs.borders << [x, y, @blob_sz, @blob_sz]
@@ -75,9 +75,9 @@ class Puyo
     render_grid
     render_blobs
     # @args.outputs.primitives << [50, 200, 'puyo', 30, 0, [255, 255, 255]].label
-    @args.outputs.primitives << [@args.grid.w - 100, @args.grid.h - 50, "Score: #{@score}", 20 , 2, [255, 255, 255]].label
+    @args.outputs.primitives << [@args.grid.w - 50, @args.grid.h - 50, "Score: #{@score}", 20 , 2, [255, 255, 255]].label
     if @game_state != :running
-      @args.outputs.primitives << [@args.grid.w - 100, @args.grid.h - 120, "- Click Anywhere to Start -", 4 , 2, [255, 255, 255]].label
+      @args.outputs.primitives << [@args.grid.w - 50, @args.grid.h - 120, "- Click Anywhere to Start -", 4 , 2, [255, 255, 255]].label
     end
     # @args.outputs.primitives << [0, 200, "freefall: #{@freefall_in_progress}", 2, 0, [255, 255, 255]].label
     # @args.outputs.primitives << [100, 600, "total: #{blob_groups.map{|bg| "#{bg.first.color}: #{bg.size}"}.join("\n")}", 1, 0, [255, 0, 0]].label
